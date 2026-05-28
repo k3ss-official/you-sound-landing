@@ -1,45 +1,31 @@
-export const dynamic = 'force-dynamic'
-
+import { getCloudflareContext } from '@opennextjs/cloudflare'
 import { NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+
+export const runtime = 'edge'
 
 export async function POST(request: Request) {
   try {
-    const body = await request?.json?.().catch(() => null)
-    const email = body?.email?.trim?.()?.toLowerCase?.()
+    const body = (await request.json().catch(() => null)) as { email?: string } | null
+    const email = body?.email?.trim().toLowerCase()
 
     if (!email) {
-      return NextResponse.json(
-        { error: 'Email is required' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Email is required' }, { status: 400 })
     }
 
-    // Basic email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(email)) {
-      return NextResponse.json(
-        { error: 'Please enter a valid email address' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Please enter a valid email address' }, { status: 400 })
     }
 
-    // Upsert to avoid duplicate errors
-    await prisma.subscriber.upsert({
-      where: { email },
-      update: {},
-      create: { email },
-    })
+    const { env } = getCloudflareContext()
+    await env.DB
+      .prepare('INSERT INTO subscribers (email) VALUES (?) ON CONFLICT(email) DO NOTHING')
+      .bind(email)
+      .run()
 
-    return NextResponse.json(
-      { message: "You're on the list!" },
-      { status: 200 }
-    )
-  } catch (err: any) {
+    return NextResponse.json({ message: "You're on the list!" }, { status: 200 })
+  } catch (err) {
     console.error('Subscribe error:', err)
-    return NextResponse.json(
-      { error: 'Something went wrong. Please try again.' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Something went wrong. Please try again.' }, { status: 500 })
   }
 }

@@ -3,80 +3,16 @@
 @tailwind utilities;
 
 @layer base {
-  :root {
-    --background: 30 10% 6%;
-    --foreground: 40 20% 92%;
-    --card: 30 10% 10%;
-    --card-foreground: 40 20% 92%;
-    --popover: 30 10% 10%;
-    --popover-foreground: 40 20% 92%;
-    --primary: 145 40% 45%;
-    --primary-foreground: 30 10% 6%;
-    --secondary: 30 10% 16%;
-    --secondary-foreground: 40 20% 85%;
-    --muted: 30 8% 14%;
-    --muted-foreground: 40 10% 55%;
-    --accent: 145 35% 38%;
-    --accent-foreground: 40 20% 92%;
-    --destructive: 0 62% 55%;
-    --destructive-foreground: 40 20% 92%;
-    --border: 30 8% 18%;
-    --input: 30 8% 20%;
-    --ring: 145 40% 45%;
-    --radius: 0.5rem;
-    --duration-fast: 150ms;
-    --duration-normal: 200ms;
-    --duration-slow: 300ms;
-    --chart-1: 145 40% 45%;
-    --chart-2: 30 60% 55%;
-    --chart-3: 200 50% 50%;
-    --chart-4: 280 50% 55%;
-    --chart-5: 340 55% 55%;
-  }
-
-  .dark {
-    --background: 30 10% 6%;
-    --foreground: 40 20% 92%;
-    --card: 30 10% 10%;
-    --card-foreground: 40 20% 92%;
-    --popover: 30 10% 10%;
-    --popover-foreground: 40 20% 92%;
-    --primary: 145 40% 45%;
-    --primary-foreground: 30 10% 6%;
-    --secondary: 30 10% 16%;
-    --secondary-foreground: 40 20% 85%;
-    --muted: 30 8% 14%;
-    --muted-foreground: 40 10% 55%;
-    --accent: 145 35% 38%;
-    --accent-foreground: 40 20% 92%;
-    --destructive: 0 62% 55%;
-    --destructive-foreground: 40 20% 92%;
-    --border: 30 8% 18%;
-    --input: 30 8% 20%;
-    --ring: 145 40% 45%;
-    --radius: 0.5rem;
-  }
-}
-
-@layer base {
-  * {
-    @apply border-border;
-  }
+  html,
   body {
-    @apply bg-background text-foreground;
     margin: 0;
     padding: 0;
     overflow: hidden;
-  }
-  html {
-    overflow: hidden;
-  }
-  [data-hydration-error] {
-    display: none !important;
+    background: black;
+    color: white;
   }
 }
 
-/* Glassmorphic card — sits on top of image */
 .glass-card {
   background: rgba(0, 0, 0, 0.35);
   backdrop-filter: blur(20px);
@@ -85,7 +21,6 @@
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
 
-/* Marquee animation */
 @keyframes marquee {
   0% {
     transform: translateX(0);

@@ -1,17 +1,7 @@
-import { DM_Sans, Plus_Jakarta_Sans, JetBrains_Mono } from 'next/font/google'
 import './globals.css'
-import { ThemeProvider } from '@/components/theme-provider'
-import { Toaster } from '@/components/ui/sonner'
-import { ChunkLoadErrorHandler } from '@/components/chunk-load-error-handler'
-
-export const dynamic = 'force-dynamic'
-
-const dmSans = DM_Sans({ subsets: ['latin'], variable: '--font-sans' })
-const jakartaSans = Plus_Jakarta_Sans({ subsets: ['latin'], variable: '--font-display' })
-const jetbrainsMono = JetBrains_Mono({ subsets: ['latin'], variable: '--font-mono' })
 
 export const metadata = {
-  metadataBase: new URL(process.env.NEXTAUTH_URL ?? 'http://localhost:3000'),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'),
   title: 'YOU SOUND?',
   description: 'Something is coming. Stay tuned.',
   icons: {
@@ -31,23 +21,11 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en">
       <head>
         <link rel="preload" href="/hero-video.mp4" as="video" type="video/mp4" />
-        <script src="https://apps.abacus.ai/chatllm/appllm-lib.js"></script>
       </head>
-      <body className={`${dmSans.variable} ${jakartaSans.variable} ${jetbrainsMono.variable} font-sans`}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="dark"
-          enableSystem={false}
-          disableTransitionOnChange
-        >
-          {children}
-          <Toaster />
-          <ChunkLoadErrorHandler />
-        </ThemeProvider>
-      </body>
+      <body>{children}</body>
     </html>
   )
 }
