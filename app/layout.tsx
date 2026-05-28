@@ -33,7 +33,8 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <link rel="preload" href="/hero-video.mp4" as="video" type="video/mp4" />
+        <link rel="preload" href="/hero.webp" as="image" type="image/webp" media="(min-width: 640px)" fetchPriority="high" />
+        <link rel="preload" href="/hero-mobile.webp" as="image" type="image/webp" media="(max-width: 639px)" fetchPriority="high" />
         <script src="https://apps.abacus.ai/chatllm/appllm-lib.js"></script>
       </head>
       <body className={`${dmSans.variable} ${jakartaSans.variable} ${jetbrainsMono.variable} font-sans`}>
