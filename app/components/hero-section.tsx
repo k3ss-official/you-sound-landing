@@ -25,9 +25,12 @@ export default function HeroSection() {
     if (!trimmed) return
 
     setStatus('loading')
-    
-    // Play video instantly on submission
+
+    // Play video WITH sound on submission — the submit is a user gesture,
+    // so browsers allow unmuted playback here.
     if (videoRef.current) {
+      videoRef.current.muted = false
+      videoRef.current.volume = 1
       videoRef.current.play().catch(() => {})
     }
 
@@ -65,46 +68,68 @@ export default function HeroSection() {
 
   const handleVideoEnd = useCallback(() => {
     setStatus('success')
+    // Hold the "Ta La" message for 10s, then reset to the form and re-arm the video.
+    setTimeout(() => {
+      if (videoRef.current) {
+        videoRef.current.pause()
+        videoRef.current.currentTime = 0
+        videoRef.current.muted = true
+      }
+      setStatus('idle')
+    }, 10000)
   }, [])
 
   return (
-    <div className="relative w-full overflow-hidden bg-black flex flex-col sm:block" style={{ height: '100dvh' }}>
+    <div className="relative w-full overflow-hidden bg-black flex flex-col items-center justify-center sm:block" style={{ height: '100dvh' }}>
 
-      <video
-        ref={videoRef}
-        key={isMobile ? 'mobile' : 'desktop'}
-        src={isMobile ? "/hero-video-mobile.mp4" : "/hero-video.mp4"}
-        poster={isMobile ? "/hero-mobile.webp" : "/hero.webp"}
-        width={isMobile ? 720 : 1280}
-        height={isMobile ? 720 : 720}
-        muted
-        playsInline
-        preload="auto"
-        onEnded={handleVideoEnd}
-        className={isMobile ? "w-full h-auto aspect-square block bg-black" : "absolute inset-0 w-full h-full object-cover block bg-black"}
-      />
+      {/* Media + banner — banner rides the top edge of the video */}
+      <div className="relative w-full sm:static sm:w-auto">
+        <video
+          ref={videoRef}
+          key={isMobile ? 'mobile' : 'desktop'}
+          src={isMobile ? "/hero-video-mobile.mp4" : "/hero-video.mp4"}
+          poster={isMobile ? "/hero-mobile.webp" : "/hero.webp"}
+          width={isMobile ? 720 : 1280}
+          height={isMobile ? 720 : 720}
+          muted
+          playsInline
+          preload="auto"
+          onEnded={handleVideoEnd}
+          className={isMobile ? "w-full h-auto aspect-square block bg-black" : "absolute inset-0 w-full h-full object-cover block bg-black"}
+        />
 
-      {/* Scrolling banner — top edge */}
-      <div className="absolute top-0 left-0 right-0 z-10 overflow-hidden py-3 bg-black/20 backdrop-blur-[2px]">
-        <div className="flex whitespace-nowrap animate-marquee">
-          {Array.from({ length: 16 }).map((_: unknown, i: number) => (
-            <span
-              key={i}
-              className="text-[9px] sm:text-[10px] tracking-[0.4em] uppercase text-white/40 mx-10 sm:mx-14 font-light"
-            >
-              coming soon
-            </span>
-          ))}
+        {/* Scrolling banner — sits directly on the top edge of the video */}
+        <div className="absolute top-0 left-0 right-0 z-10 overflow-hidden py-2.5 bg-black/25 backdrop-blur-[2px]">
+          <div className="flex whitespace-nowrap animate-marquee">
+            {Array.from({ length: 16 }).map((_: unknown, i: number) => (
+              <span
+                key={i}
+                className="text-[13px] sm:text-[13px] tracking-[0.4em] uppercase text-white/50 mx-8 sm:mx-14 font-light"
+              >
+                coming soon
+              </span>
+            ))}
+          </div>
         </div>
-      </div>
 
-      {/* Email form / thank you — responsive block-bottom (mobile) / absolute-bottom-right (desktop) */}
-      <div className="relative mt-auto mb-10 mx-auto w-[90%] max-w-sm sm:absolute sm:bottom-8 sm:right-8 sm:translate-x-0 sm:left-auto sm:m-0 z-10">
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1.0, delay: 0.3, ease: 'easeOut' }}
-        >
+        {/* Email form / thank you — overlaid on the bottom-right of the video, in the empty bar space */}
+        <div className="absolute bottom-3 right-3 w-[78%] max-w-[300px] sm:bottom-8 sm:right-8 sm:w-[90%] sm:max-w-sm z-20">
+        <div className="animate-fade-in-up">
+          {status !== 'success' && (
+            <div className="flex justify-center mb-1.5 pointer-events-none" aria-hidden="true">
+              <svg
+                className="animate-gentle-bounce w-6 h-6 text-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.75)]"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M6 9l6 6 6-6" />
+              </svg>
+            </div>
+          )}
           <AnimatePresence mode="wait">
             {status === 'success' ? (
               <motion.div
@@ -124,7 +149,7 @@ export default function HeroSection() {
                 onSubmit={handleSubmit}
                 exit={{ opacity: 0, y: -8, filter: 'blur(6px)' }}
                 transition={{ duration: 0.6, ease: 'easeInOut' }}
-                className="glass-card rounded-xl px-4 sm:px-5 py-3 flex items-center gap-3 border border-white/10 hover:border-white/20 transition-colors duration-300"
+                className="led-trail glass-card rounded-xl px-4 sm:px-5 py-3 flex items-center gap-3 border border-white/35 hover:border-white/50 transition-colors duration-300"
               >
                 <input
                   type="email"
@@ -133,7 +158,7 @@ export default function HeroSection() {
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e?.target?.value ?? '')}
                   placeholder="drop us your email here"
                   // font-size text-base (16px) on mobile stops iOS Safari auto-zoom, sm:text-sm (14px) on desktop is clean
-                  className="flex-1 bg-transparent text-base sm:text-sm text-white/90 placeholder:text-white/35 focus:outline-none font-light tracking-wide py-1 min-w-0"
+                  className="flex-1 bg-transparent text-base sm:text-sm text-white/90 placeholder:text-white/55 focus:outline-none font-light tracking-wide py-1 min-w-0"
                   disabled={status === 'loading'}
                 />
                 <motion.button
@@ -141,7 +166,7 @@ export default function HeroSection() {
                   whileTap={{ scale: 0.95 }}
                   type="submit"
                   disabled={status === 'loading' || !email.trim()}
-                  className="shrink-0 text-[10px] tracking-[0.25em] uppercase text-white/60 hover:text-white transition-colors duration-300 disabled:opacity-20 font-light px-2 py-1 select-none"
+                  className="shrink-0 text-[11px] tracking-[0.25em] uppercase text-amber-300 hover:text-amber-200 transition-colors duration-300 disabled:opacity-30 font-normal px-2 py-1 select-none"
                   aria-label="Subscribe"
                 >
                   {status === 'loading' ? (
@@ -160,7 +185,8 @@ export default function HeroSection() {
               </motion.form>
             )}
           </AnimatePresence>
-        </motion.div>
+        </div>
+        </div>
       </div>
     </div>
   )

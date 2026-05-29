@@ -1,0 +1,8 @@
+name = "yousound"
+compatibility_date = "2026-05-29"
+pages_build_output_dir = "."
+
+[[d1_databases]]
+binding = "DB"
+database_name = "yousound-subscribers"
+database_id = "bdf9df3e-d0dd-4410-b4c7-872d094d934c"

@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>YOU SOUND?</title>
+  <meta name="description" content="Something is coming. Stay tuned." />
+  <link rel="icon" href="/favicon.svg" />
+  <link rel="shortcut icon" href="/favicon.svg" />
+  <meta property="og:title" content="YOU SOUND?" />
+  <meta property="og:description" content="Something is coming. Stay tuned." />
+  <meta property="og:image" content="/og-image.png" />
+  <link rel="preload" href="/hero.webp" as="image" type="image/webp" media="(min-width: 640px)" fetchpriority="high" />
+  <link rel="preload" href="/hero-mobile.webp" as="image" type="image/webp" media="(max-width: 639px)" fetchpriority="high" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    :root { --led-radius: 0.75rem; }
+    html, body { margin: 0; padding: 0; overflow: hidden; height: 100%; }
+    body {
+      background: #000;
+      color: #f5efe6;
+      font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .stage {
+      position: relative;
+      width: 100%;
+      overflow: hidden;
+      background: #000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100dvh;
+    }
+
+    .media { position: relative; width: 100%; }
+
+    video.hero {
+      width: 100%;
+      height: auto;
+      aspect-ratio: 1 / 1;
+      display: block;
+      background: #000;
+    }
+
+    /* Scrolling banner — rides the top edge of the video */
+    .banner {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      z-index: 10;
+      overflow: hidden;
+      padding: 0.625rem 0;
+      background: rgba(0,0,0,0.25);
+      backdrop-filter: blur(2px);
+      -webkit-backdrop-filter: blur(2px);
+    }
+    .banner-track { display: flex; white-space: nowrap; animation: marquee 20s linear infinite; }
+    .banner-track span {
+      font-size: 13px;
+      letter-spacing: 0.4em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.5);
+      margin: 0 2rem;
+      font-weight: 300;
+    }
+    @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+
+    /* Form / thank-you overlay — bottom-right of the video */
+    .overlay {
+      position: absolute;
+      bottom: 0.75rem; right: 0.75rem;
+      width: 78%; max-width: 300px;
+      z-index: 20;
+    }
+    .fade-in-up { animation: fadeInUp 1s ease-out 0.3s both; }
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+
+    .chevron-wrap { display: flex; justify-content: center; margin-bottom: 0.375rem; pointer-events: none; }
+    .chevron {
+      width: 1.5rem; height: 1.5rem;
+      color: #fbbf24;
+      filter: drop-shadow(0 0 8px rgba(251,191,36,0.75));
+      animation: gentle-bounce 1.4s ease-in-out infinite;
+    }
+    @keyframes gentle-bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+
+    /* Glassmorphic card */
+    .glass-card {
+      background: rgba(0,0,0,0.55);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,255,255,0.35);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.55);
+    }
+    .card { border-radius: var(--led-radius); transition: border-color 0.3s; }
+    .card:hover { border-color: rgba(255,255,255,0.5); }
+
+    form.card {
+      padding: 0.75rem 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    form.card input {
+      flex: 1; min-width: 0;
+      background: transparent;
+      border: none;
+      color: rgba(255,255,255,0.9);
+      font-size: 16px;
+      font-weight: 300;
+      letter-spacing: 0.025em;
+      padding: 0.25rem 0;
+      outline: none;
+      font-family: inherit;
+    }
+    form.card input::placeholder { color: rgba(255,255,255,0.55); }
+    form.card button {
+      flex-shrink: 0;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      font-size: 11px;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: #fcd34d;
+      font-weight: 400;
+      padding: 0.25rem 0.5rem;
+      transition: color 0.3s, transform 0.15s;
+      user-select: none;
+      font-family: inherit;
+    }
+    form.card button:hover:not(:disabled) { color: #fde68a; transform: scale(1.05) translateX(2px); }
+    form.card button:active:not(:disabled) { transform: scale(0.95); }
+    form.card button:disabled { opacity: 0.3; cursor: default; }
+
+    .thanks {
+      border-radius: var(--led-radius);
+      padding: 1rem 1.5rem;
+      text-align: center;
+    }
+    .thanks p {
+      margin: 0;
+      font-size: 13px;
+      color: rgba(255,255,255,0.9);
+      letter-spacing: 0.05em;
+      font-weight: 300;
+    }
+    .hidden { display: none !important; }
+
+    /* Running LED trail */
+    @property --led-angle { syntax: '<angle>'; initial-value: 0deg; inherits: false; }
+    .led-trail { position: relative; }
+    .led-trail::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      padding: 1.5px;
+      background: conic-gradient(
+        from var(--led-angle),
+        transparent 0deg,
+        transparent 290deg,
+        rgba(52,211,153,0.85) 332deg,
+        rgba(251,191,36,1) 352deg,
+        rgba(255,255,255,0.95) 360deg
+      );
+      -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      -webkit-mask-composite: xor;
+              mask-composite: exclude;
+      filter: drop-shadow(0 0 4px rgba(52,211,153,0.55));
+      pointer-events: none;
+      animation: led-spin 4s linear infinite;
+    }
+    @keyframes led-spin { to { --led-angle: 360deg; } }
+
+    /* Toast */
+    #toast {
+      position: fixed;
+      bottom: 1.25rem; left: 50%;
+      transform: translateX(-50%) translateY(1rem);
+      z-index: 50;
+      background: rgba(0,0,0,0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,0.2);
+      color: rgba(255,255,255,0.92);
+      padding: 0.7rem 1.1rem;
+      border-radius: 0.6rem;
+      font-size: 13px;
+      letter-spacing: 0.02em;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.35s, transform 0.35s;
+      max-width: 88vw;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    }
+    #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    #toast.err { border-color: rgba(248,113,113,0.5); }
+
+    /* Desktop: widescreen video fills the stage */
+    @media (min-width: 640px) {
+      .stage { display: block; }
+      .media { position: static; width: auto; }
+      video.hero {
+        position: absolute;
+        inset: 0;
+        width: 100%; height: 100%;
+        aspect-ratio: auto;
+        object-fit: cover;
+      }
+      .banner { padding: 0.625rem 0; }
+      .banner-track span { margin: 0 3.5rem; }
+      .overlay { bottom: 2rem; right: 2rem; width: 90%; max-width: 24rem; }
+      .thanks { text-align: right; }
+      .thanks p { font-size: 14px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .led-trail::before, .chevron, .banner-track { animation: none; }
+    }
+  </style>
+</head>
+<body>
+  <main class="stage">
+    <div class="media">
+      <video
+        id="hero"
+        class="hero"
+        poster="/hero-mobile.webp"
+        muted
+        playsinline
+        preload="auto"
+      ></video>
+
+      <div class="banner" aria-hidden="true">
+        <div class="banner-track" id="banner"></div>
+      </div>
+
+      <div class="overlay">
+        <div class="fade-in-up">
+          <div class="chevron-wrap" id="chevronWrap" aria-hidden="true">
+            <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M6 9l6 6 6-6" />
+            </svg>
+          </div>
+
+          <form id="form" class="led-trail glass-card card" novalidate>
+            <input id="email" type="email" required placeholder="drop us your email here" autocomplete="email" />
+            <button id="submitBtn" type="submit" aria-label="Subscribe" disabled>enter</button>
+          </form>
+
+          <div id="thanks" class="glass-card thanks hidden">
+            <p>Ta La, we&apos;ll be in touch.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    (function () {
+      var video = document.getElementById('hero');
+      var form = document.getElementById('form');
+      var input = document.getElementById('email');
+      var btn = document.getElementById('submitBtn');
+      var thanks = document.getElementById('thanks');
+      var chevronWrap = document.getElementById('chevronWrap');
+      var toast = document.getElementById('toast');
+      var banner = document.getElementById('banner');
+
+      // Build marquee
+      var bannerHtml = '';
+      for (var i = 0; i < 16; i++) bannerHtml += '<span>coming soon</span>';
+      banner.innerHTML = bannerHtml;
+
+      // Responsive video source (square for mobile, widescreen for desktop)
+      var currentSrc = '';
+      function pickSource() {
+        var mobile = window.innerWidth < 640;
+        var src = mobile ? '/hero-video-mobile.mp4' : '/hero-video.mp4';
+        var poster = mobile ? '/hero-mobile.webp' : '/hero.webp';
+        if (src !== currentSrc) {
+          currentSrc = src;
+          video.src = src;
+          video.setAttribute('poster', poster);
+          video.load();
+        }
+      }
+      pickSource();
+      var resizeTimer;
+      window.addEventListener('resize', function () {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(pickSource, 150);
+      });
+
+      var status = 'idle';
+      var resetTimer;
+
+      function showToast(msg, isErr) {
+        toast.textContent = msg;
+        toast.className = isErr ? 'err show' : 'show';
+        clearTimeout(toast._t);
+        toast._t = setTimeout(function () { toast.className = isErr ? 'err' : ''; }, 4000);
+      }
+
+      input.addEventListener('input', function () {
+        btn.disabled = status === 'loading' || !input.value.trim();
+      });
+
+      function resetToForm() {
+        try { video.pause(); video.currentTime = 0; video.muted = true; } catch (e) {}
+        thanks.classList.add('hidden');
+        form.classList.remove('hidden');
+        chevronWrap.classList.remove('hidden');
+        status = 'idle';
+        btn.textContent = 'enter';
+        btn.disabled = !input.value.trim();
+      }
+
+      video.addEventListener('ended', function () {
+        status = 'success';
+        form.classList.add('hidden');
+        chevronWrap.classList.add('hidden');
+        thanks.classList.remove('hidden');
+        clearTimeout(resetTimer);
+        resetTimer = setTimeout(resetToForm, 10000);
+      });
+
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        var email = input.value.trim();
+        if (!email) return;
+
+        status = 'loading';
+        btn.textContent = '...';
+        btn.disabled = true;
+
+        // The submit is a user gesture — browsers allow unmuted playback here.
+        try {
+          video.muted = false;
+          video.volume = 1;
+          var p = video.play();
+          if (p && p.catch) p.catch(function () {});
+        } catch (e2) {}
+
+        fetch('/api/subscribe', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: email })
+        }).then(function (res) {
+          return res.json().catch(function () { return {}; }).then(function (data) {
+            return { ok: res.ok, data: data };
+          });
+        }).then(function (r) {
+          if (r.ok) {
+            input.value = '';
+            showToast(r.data.message || "You're on the list!", false);
+          } else {
+            failPlayback();
+            showToast(r.data.error || 'Failed to subscribe. Please try again.', true);
+          }
+        }).catch(function () {
+          failPlayback();
+          showToast('Something went wrong. Please check your connection.', true);
+        });
+      });
+
+      function failPlayback() {
+        try { video.pause(); video.currentTime = 0; } catch (e) {}
+        status = 'idle';
+        btn.textContent = 'retry';
+        setTimeout(function () {
+          if (status === 'idle') { btn.textContent = 'enter'; btn.disabled = !input.value.trim(); }
+        }, 3000);
+        btn.disabled = !input.value.trim();
+      }
+    })();
+  </script>
+</body>
+</html>

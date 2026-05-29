@@ -7,3 +7,8 @@ node_modules/
 *.db
 *.db-journal
 .next_quarantine/
+
+# scratch / backups (not needed in the repo)
+public/_video_backup/
+public/movie-sound.mp4
+*.opus

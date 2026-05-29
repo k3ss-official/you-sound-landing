@@ -78,11 +78,11 @@
 
 /* Glassmorphic card — sits on top of image */
 .glass-card {
-  background: rgba(0, 0, 0, 0.35);
+  background: rgba(0, 0, 0, 0.55);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.55);
 }
 
 /* Marquee animation */
@@ -97,4 +97,82 @@
 
 .animate-marquee {
   animation: marquee 20s linear infinite;
+}
+
+/* Form reveal — CSS-driven so it never stalls (framer mount-anim stalls under next dev StrictMode) */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 1s ease-out 0.3s both;
+}
+
+/* Gentle bounce — bright icon that draws the eye to the email box */
+@keyframes gentle-bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+.animate-gentle-bounce {
+  animation: gentle-bounce 1.4s ease-in-out infinite;
+}
+
+/* Running LED trail — a bright comet of light that travels around the box edge */
+@property --led-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+
+.led-trail {
+  position: relative;
+}
+
+.led-trail::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1.5px;
+  background: conic-gradient(
+    from var(--led-angle),
+    transparent 0deg,
+    transparent 290deg,
+    rgba(52, 211, 153, 0.85) 332deg,
+    rgba(251, 191, 36, 1) 352deg,
+    rgba(255, 255, 255, 0.95) 360deg
+  );
+  /* show only the 1.5px ring, punch out the interior */
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  filter: drop-shadow(0 0 4px rgba(52, 211, 153, 0.55));
+  pointer-events: none;
+  animation: led-spin 4s linear infinite;
+}
+
+@keyframes led-spin {
+  to {
+    --led-angle: 360deg;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .led-trail::before {
+    animation: none;
+  }
 }
