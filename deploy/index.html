@@ -303,6 +303,18 @@
       var status = 'idle';
       var resetTimer;
 
+      // Snap the video back into view. On Android the soft keyboard pushes the
+      // viewport up, leaving the page scrolled so the animation plays off-screen.
+      // Dismissing the keyboard + resetting scroll brings the budgie back on shot.
+      function recenter() {
+        try {
+          window.scrollTo(0, 0);
+          if (document.scrollingElement) document.scrollingElement.scrollTop = 0;
+          if (document.body) document.body.scrollTop = 0;
+          if (video.scrollIntoView) video.scrollIntoView({ block: 'center', inline: 'center' });
+        } catch (e) {}
+      }
+
       function showToast(msg, isErr) {
         toast.textContent = msg;
         toast.className = isErr ? 'err show' : 'show';
@@ -324,6 +336,9 @@
         btn.disabled = !input.value.trim();
       }
 
+      // Once playback actually begins, make sure he's on shot.
+      video.addEventListener('playing', recenter);
+
       video.addEventListener('ended', function () {
         status = 'success';
         form.classList.add('hidden');
@@ -341,6 +356,13 @@
         status = 'loading';
         btn.textContent = '...';
         btn.disabled = true;
+
+        // Dismiss the on-screen keyboard, then snap the video back on shot.
+        try { input.blur(); } catch (e0) {}
+        recenter();
+        // Run again after the keyboard finishes animating closed.
+        setTimeout(recenter, 250);
+        setTimeout(recenter, 600);
 
         // The submit is a user gesture — browsers allow unmuted playback here.
         try {
