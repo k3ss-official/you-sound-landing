@@ -137,6 +137,7 @@
     form.card button:hover:not(:disabled) { color: #fde68a; transform: scale(1.05) translateX(2px); }
     form.card button:active:not(:disabled) { transform: scale(0.95); }
     form.card button:disabled { opacity: 0.3; cursor: default; }
+    form.card #previewBtn { display: inline-flex; align-items: center; border-left: 1px solid rgba(255,255,255,0.2); padding-left: 0.6rem; }
 
     .thanks {
       border-radius: var(--led-radius);
@@ -252,6 +253,9 @@
           <form id="form" class="led-trail glass-card card" novalidate>
             <input id="email" type="email" required placeholder="drop us your email here" autocomplete="email" />
             <button id="submitBtn" type="submit" aria-label="Subscribe" disabled>enter</button>
+            <button id="previewBtn" type="button" aria-label="Preview the bird" style="display:none">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+            </button>
           </form>
 
           <div id="thanks" class="glass-card thanks hidden">
@@ -270,6 +274,7 @@
       var form = document.getElementById('form');
       var input = document.getElementById('email');
       var btn = document.getElementById('submitBtn');
+      var previewBtn = document.getElementById('previewBtn');
       var thanks = document.getElementById('thanks');
       var chevronWrap = document.getElementById('chevronWrap');
       var toast = document.getElementById('toast');
@@ -402,6 +407,28 @@
           if (status === 'idle') { btn.textContent = 'enter'; btn.disabled = !input.value.trim(); }
         }, 3000);
         btn.disabled = !input.value.trim();
+      }
+
+      // Secret preview: on a ?demo link a small play button appears that triggers
+      // the bird exactly like a submit would — minus the email capture. The public
+      // page never shows it, so the surprise stays intact.
+      var demoMode = new URLSearchParams(location.search).has('demo') || location.hash.toLowerCase() === '#demo';
+      if (demoMode && previewBtn) {
+        previewBtn.style.display = '';
+        previewBtn.addEventListener('click', function () {
+          if (status === 'loading' || status === 'success') return;
+          status = 'loading';
+          try { input.blur(); } catch (e) {}
+          recenter();
+          setTimeout(recenter, 250);
+          setTimeout(recenter, 600);
+          try {
+            video.muted = false;
+            video.volume = 1;
+            var p = video.play();
+            if (p && p.catch) p.catch(function () {});
+          } catch (e2) {}
+        });
       }
     })();
   </script>
